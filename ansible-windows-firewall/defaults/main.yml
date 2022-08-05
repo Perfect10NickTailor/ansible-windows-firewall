@@ -1,0 +1,24 @@
+---
+# defaults file for windows_firewall
+win_fw_prefix: "Ansible-Created-Rule"
+
+win_fw_ports_allow_in:
+  - localport: 53,
+    profile: public
+
+  - localport: 123,
+    profile: public
+
+win_fw_web_ports:
+  - localport: 80,
+    profile: public
+
+  - localport: 443,
+    profile: public
+
+  - localport: 8080,
+    profile: public
+    
+win_fw_program_allowed_web_out_public:
+  - 'microsoftupdate.exe'
+

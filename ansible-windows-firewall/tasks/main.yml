@@ -1,0 +1,53 @@
+- name: Enable firewall for Domain, Public and Private profiles
+  community.windows.win_firewall:
+    state: enabled
+    profiles:
+    - Domain
+    - Private
+    - Public
+    inbound_action: block
+    outbound_action: allow
+
+  tags: enable_firewall
+
+- name: Firewall | WebServer System Any Profile
+  win_firewall_rule:
+    name: "{{ win_fw_prefix }}-any-{{ item.protocol }}-{{ item.direction }}-{{ item.localport }}-any"
+    description: "{{ win_fw_prefix }} profile=any protocol={{ item.protocol }} direction={{ item.direction }} localport={{ item.localport }} remoteport=any"
+    protocol: "{{ item.protocol }}"
+    action: allow
+    direction: "{{ item.direction }}"
+    enable: yes
+    icmp_type_code: "{{ item.icmp_type_code }}"
+    localip: any
+    localport: "{{ item.localport }}"
+    remoteip: any
+    state: "{{ win_fw_webserver_sys_anyprofile_State }}"
+  with_items:
+     - "{{ win_fw_webserver_sys_anyprofile }}"
+
+- name: Firewall | allow incoming ports
+  win_firewall_rule:
+    name: "{{ win_fw_prefix }}-allow-incoming-{{ item.localport }}"
+    enable: yes
+    state: present
+    localport: "{{ item.localport }}"
+    remoteport: any
+    action: allow
+    direction: In
+    protocol: TCP
+    profile: "{{ item.profile }}"
+  with_items:
+     - "{{ win_fw_ports_allow_in }}"
+     - "{{ win_fw_web_ports }}"
+
+- name: Firewall | allow outgoing program
+  win_firewall_rule:
+    name: "{{ win_fw_prefix }}-allow-outgoing-{{ item | basename }}"
+    enable: yes
+    state: present
+    action: allow
+    direction: Out
+    profile: Public
+  with_items: "{{ win_fw_program_allowed_web_out_public }}"
+  # ignore_errors: true
